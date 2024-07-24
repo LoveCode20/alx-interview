@@ -40,6 +40,7 @@ def isWinner(x, nums):
     else:
         return None
 
+
 def sieve_of_eratosthenes(n):
     """Returns a list where the index is True if it is a prime number."""
     primes = [True] * (n + 1)
@@ -51,6 +52,7 @@ def sieve_of_eratosthenes(n):
                 primes[i] = False
         p += 1
     return primes
+
 
 # Test
 if __name__ == "__main__":
