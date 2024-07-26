@@ -1,41 +1,53 @@
-#!/usr/bin/env node
+#!/usr/bin/node
 
 const request = require('request');
 
-const movieId = process.argv[2];
-const filmUrl = `https://swapi-api.hbtn.io/api/films/${movieId}`;
+const movie = process.argv[2];
+const StarPoint = 'https://swapi-api.hbtn.io/api/films/' + movie;
+let person = [];
+const namee = [];
 
-const fetchCharacterNames = async () => {
-  try {
-    const filmResponse = await new Promise((resolve, reject) => {
-      request(filmUrl, (error, response, body) => {
-        if (error || response.statusCode !== 200) {
-          reject(new Error(`Failed to fetch film data: ${error || response.statusCode}`));
+const requestCharacters = async () => {
+  await new Promise(resolve => request(StarPoint, (err, res, body) => {
+    if (err || res.statusCode !== 200) {
+      console.error('Error: ', err, '| StatusCode: ', res.statusCode);
+    } else {
+      const jsonBody = JSON.parse(body);
+      person = jsonBody.characters;
+      resolve();
+    }
+  }));
+};
+
+const requestNames = async () => {
+  if (person.length > 0) {
+    for (const p of person) {
+      await new Promise(resolve => request(p, (err, res, body) => {
+        if (err || res.statusCode !== 200) {
+          console.error('Error: ', err, '| StatusCode: ', res.statusCode);
         } else {
-          resolve(JSON.parse(body));
+          const jsonBody = JSON.parse(body);
+          namee.push(jsonBody.name);
+          resolve();
         }
-      });
-    });
-
-    const characterUrls = filmResponse.characters;
-    const characterPromises = characterUrls.map(url => 
-      new Promise((resolve, reject) => {
-        request(url, (error, response, body) => {
-          if (error || response.statusCode !== 200) {
-            reject(new Error(`Failed to fetch character data: ${error || response.statusCode}`));
-          } else {
-            resolve(JSON.parse(body).name);
-          }
-        });
-      })
-    );
-
-    const characterNames = await Promise.all(characterPromises);
-    characterNames.forEach(name => console.log(name));
-  } catch (error) {
-    console.error('Error:', error.message);
+      }));
+    }
+  } else {
+    console.error('Error: Got no Characters for some reason');
   }
 };
 
-fetchCharacterNames();
+const getCharNames = async () => {
+  await requestCharacters();
+  await requestNames();
 
+  for (const n of namee) {
+    if (n === namee[namee.length - 1]) {
+      process.stdout.write(n);
+    } else {
+      process.stdout.write(n + '\n');
+    }
+  }
+};
+
+getCharNames();
