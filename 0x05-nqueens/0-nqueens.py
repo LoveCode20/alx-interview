@@ -4,87 +4,49 @@
 import sys
 
 
+def print_usage():
+    print("Usage: nqueens N")
+    sys.exit(1)
+
+def print_error(message):
+    print(message)
+    sys.exit(1)
+
+def is_valid(board, row, col):
+    for i in range(row):
+        if board[i] == col or \
+           board[i] - i == col - row or \
+           board[i] + i == col + row:
+            return False
+    return True
+
+def solve_nqueens(N, board, row, solutions):
+    if row == N:
+        solution = [[i, board[i]] for i in range(N)]
+        solutions.append(solution)
+        return
+    for col in range(N):
+        if is_valid(board, row, col):
+            board[row] = col
+            solve_nqueens(N, board, row + 1, solutions)
+            board[row] = -1
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print("Usage: nqueens N")
-        sys.exit(1)
+        print_usage()
 
     try:
-        number = int(sys.argv[1])
+        N = int(sys.argv[1])
     except ValueError:
-        print('N must be a number')
-        exit(1)
+        print_error("N must be a number")
 
-    if number < 4:
-        print('N must be at least 4')
-        exit(1)
+    if N < 4:
+        print_error("N must be at least 4")
 
-    # initialization
-    ls = []
-    placedqueens = []
-    stop = False
-    row = 0
-    column = 0
+    board = [-1] * N
+    solutions = []
+    solve_nqueens(N, board, 0, solutions)
 
-    # pass throug rows
-    while row < number:
-        goback = False
-        # pass through columns
-        while column < number:
-            # check if safe to place queen
-            safe = True
-            for cord in placedqueens:
-                col = cord[1]
-                if (col == column or col + (row-cord[0]) == column or
-                        col - (row-cord[0]) == column):
-                    safe = False
-                    break
+    for solution in solutions:
+        print(solution)
 
-            if not safe:
-                if column == number - 1:
-                    goback = True
-                    break
-                column += 1
-                continue
-
-            # this row is safe to place queen
-            cords = [row, column]
-            placedqueens.append(cords)
-            """if last row is reached, add solution to list"""
-            if row == number - 1:
-                ls.append(placedqueens[:])
-                for cord in placedqueens:
-                    if cord[1] < number - 1:
-                        row = cord[0]
-                        column = cord[1]
-                for i in range(number - row):
-                    placedqueens.pop()
-                if row == number - 1 and column == number - 1:
-                    placedqueens = []
-                    stop = True
-                row -= 1
-                column += 1
-            else:
-                column = 0
-            break
-        if stop:
-            break
-        """if no safe column found, go back to previous row and column"""
-        if goback:
-            row -= 1
-            while row >= 0:
-                column = placedqueens[row][1] + 1
-                del placedqueens[row]
-                if column < number:
-                    break
-                row -= 1
-            if row < 0:
-                break
-            continue
-        row += 1
-
-    for index, value in enumerate(ls):
-        if index == len(ls) - 1:
-            print(value, end='')
-        else:
-            print(value)
